@@ -1,0 +1,42 @@
+"Sandie":http://github.com/premasagar/sandie is a simple method for loading external JavaScript files into a page without affecting the global scope, to avoid collisions between conflicting scripts. The scripts are sandboxed inside the window of a temporary iframe, and then returned to a callback function, to be used elsewhere on the page.
+
+* by "Premasagar Rose":http://github.com/premasagar
+** "premasagar.com":http://premasagar.com / "dharmafly.com":http://dharmafly.com
+* "MIT license":http://opensource.org/licenses/mit-license.php
+
+
+h1. Usage
+
+h2. Loading one script, and returning one variable:
+
+bc. sandie(
+    'http://example.com/script.js',
+    'foo', // the global var 'foo' will be returned
+    function(foo){
+        alert(foo);
+    }
+);
+
+
+h2. Loading multiple scripts, and returning multiple variables:
+
+bc. sandie(
+    ['script1.js', 'script2.js'],
+    ['foo1', 'foo2'], // the global vars, foo1 and foo2 will be returned
+    function(vars){
+        alert(vars.foo1 + vars.foo2);
+    }
+);
+
+
+h2. Sandie avoids var collisions between competing scripts
+
+bc. var foo = 1;
+sandie(
+    'script.js', // this script contains 'var foo = 2;'
+    'foo',
+    function(sandboxedFoo){
+        alert(foo); // 1
+        alert(sandboxedFoo); // 2
+    }
+);
