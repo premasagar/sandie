@@ -3,18 +3,19 @@
 <head>
     <meta charset=utf-8 />
     <title>sandie</title>
-    <script src="jquery.js"></script> <!-- the Sandie script does not use jQuery - it's just here to assist the demo -->
     
-    <script src="../sandie.js"></script> <!-- include the Sandie script -->
+    <!-- include the Sandie script -->
+    <script src="../sandie.js"></script>
+
+    <!-- the Sandie script does not use jQuery; it's just here to assist the demo -->
+    <script src="jquery.js"></script>
 </head>
 
 <body>
     <h1><a href="http://github.com/premasagar/mishmash/tree/master/sandie/">Sandie</a></h1>
     <p>View source to see what's happening.</p>
     <hr>
-    <div class=demo>
-        
-    </div>
+    <div id=demo></div>
     
     <script>
         var sandy = sandie(
@@ -25,9 +26,14 @@
             'jQuery',
             
             function(sandboxedVar){
-                $('.demo').text(
-                    'Host page has jQuery version ' + jQuery.fn.jquery +
-                    ', and the sandboxed jQuery has version ' + sandboxedVar.fn.jquery + '.'
+                $('.demo').html(
+                    '<p>' +
+                    'Host page includes jQuery, version ' +
+                        jQuery.fn.jquery + 
+                    ', and the sandboxed jQuery has version ' +
+                        sandboxedVar.fn.jquery +
+                    '.' +
+                    '</p>'
                 );
             }
         );
