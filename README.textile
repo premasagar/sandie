@@ -14,11 +14,11 @@ h2. Avoid var collisions between competing scripts
 
 bc. var foo = 'bar';
 sandie(
-    'script.js',                    // this example script contains "var foo = 'blah';"
-    'foo',                          // the name of the var to capture from the sandboxed script
-    function(foo2){                 // a callback function, for once the script has loaded
-        alert(foo);                 // 'bar' (from global scope in the main document)
-        alert(foo2);                // 'blah' (from the sandboxed script)
+    'script.js',     // this example script contains "var foo = 'blah';"
+    'foo',           // the name of the var to capture from the sandboxed script
+    function(foo2){  // a callback function, for once the script has loaded
+        alert(foo);  // 'bar' (from global scope in the main document)
+        alert(foo2); // 'blah' (from the sandboxed script)
     }
 );
 
@@ -28,8 +28,8 @@ h2. Load one script, and return one variable:
 bc. sandie(
     'http://example.com/script.js', // script src
     'foo',                          // the sandboxed var 'foo' to pass to the callback
-    function(myVar){
-        alert(myVar);               // myVar === foo from the sandboxed script
+    function(myVar){                // myVar === foo from the sandboxed script
+        alert(myVar);
     }
 );
 
