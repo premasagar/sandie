@@ -1,4 +1,6 @@
-"Sandie":http://github.com/premasagar/sandie is a simple method for loading external JavaScript files into a page without affecting the global scope, to avoid collisions between conflicting scripts. The scripts are sandboxed inside the window of a temporary iframe, and then returned to a callback function, to be used elsewhere on the page.
+"Sandie":http://github.com/premasagar/sandie is a simple method for loading external JavaScript files into a page without affecting the global scope of the document. This is useful when there is a need to avoid collisions between conflicting scripts and to keep the global namespace clean - e.g. when including third-party JavaScript widgets in a web page (see "the Sqwidget project":http://github.com/premasagar/sqwidget).
+
+Scripts are sandboxed by loading them inside the window of a temporary iframe, and then returned to a callback function, so that they can be used elsewhere on the main document.
 
 * by "Premasagar Rose":http://github.com/premasagar
 ** "premasagar.com":http://premasagar.com / "dharmafly.com":http://dharmafly.com
@@ -8,15 +10,15 @@
 h1. Usage
 
 
-h2. Sandie avoids var collisions between competing scripts
+h2. Avoid var collisions between competing scripts
 
 bc. var foo = 1;
 sandie(
-    'script.js',    // this script contains 'var foo = 2;'
-    'foo',          // the global var to capture from the script
-    function(sandboxedFoo){ // callback function
-        alert(foo); // 1 (from global scope)
-        alert(sandboxedFoo); // 2 (from the sandboxed script)
+    'script.js',    // this example script contains 'var foo = 2;'
+    'foo',          // the name of the var to capture from the sandboxed script
+    function(foo2){ // a callback function, for once the script has loaded
+        alert(foo); // 1 (from global scope in the main document)
+        alert(foo2); // 2 (from the sandboxed script)
     }
 );
 
@@ -25,7 +27,7 @@ h2. Load one script, and return one variable:
 
 bc. sandie(
     'http://example.com/script.js',
-    'foo', // the global var 'foo' will be returned
+    'foo', // the sandboxed variable 'foo' will be returned
     function(foo){
         alert(foo);
     }
@@ -36,8 +38,21 @@ h2. Load multiple scripts, and return multiple variables:
 
 bc. sandie(
     ['script1.js', 'script2.js'],
-    ['foo1', 'foo2'], // the global vars, foo1 and foo2 will be returned
+    ['foo1', 'foo2'], // the sandboxed vars, foo1 and foo2 will be returned
     function(vars){
         alert(vars.foo1 + vars.foo2);
     }
 );
+
+
+h2. Example uses
+
+* Allowing widgets to load different versions of the same plugin or JavaScript library
+* Allowing widgets to load different scripts that use the same names for global variables
+* (In fact, these are exactly the use cases of "Sqwidget"::http://github.com/premasagar/sqwidget, which Sandie was created for)
+
+
+h2. Project status
+
+Pre-alpha. Tested only in Firefox.
+Under active development, with extended functionality on its way.
