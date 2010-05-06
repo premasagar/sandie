@@ -54,5 +54,5 @@ h2. Example uses
 
 h2. Project status
 
-Pre-alpha. Tested only in Firefox.
+Pre-alpha. So far tested in Firefox 3.6.4 and Chrome 5 beta.
 Under active development, with extended functionality on its way.

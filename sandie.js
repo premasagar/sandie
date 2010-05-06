@@ -17,14 +17,14 @@
 
 */
 
-this.sandie = (function(){
+window.sandie = (function(){
     var
         window = this,
         document = window.document;
 
     function isArray(obj){
-		return toString.call(obj) === "[object Array]" || obj.constructor === Array || obj instanceof Array;
-	}
+        return toString.call(obj) === "[object Array]" || obj.constructor === Array || obj instanceof Array;
+    }
 
     function hostBody(){
         return document.getElementsByTagName('body')[0];
@@ -79,44 +79,44 @@ this.sandie = (function(){
          */
 
         function multiple(srcs, callback, inOrder, targetWindow){
-			var
-			    length = srcs.length,
-				loaded = 0,
-				checkIfComplete;
+            var
+                length = srcs.length,
+                loaded = 0,
+                checkIfComplete;
 
-	        callback = callback || function(){};
-			
-			if (inOrder === true) {
-				// Recursive, each callback re-calls getScripts
-				// with a shifted array.
-				single(srcs.shift(), function(){
-					if (length === 1){
-						callback.call(targetWindow);
-					}
-					else {
-					    // preserve inOrder when recursing
-						multiple(srcs, callback, true);
-					}
-				}, targetWindow);
-			}
-			else {
-				// Plain old loop
+            callback = callback || function(){};
+            
+            if (inOrder === true) {
+                // Recursive, each callback re-calls getScripts
+                // with a shifted array.
+                single(srcs.shift(), function(){
+                    if (length === 1){
+                        callback.call(targetWindow);
+                    }
+                    else {
+                        // preserve inOrder when recursing
+                        multiple(srcs, callback, true);
+                    }
+                }, targetWindow);
+            }
+            else {
+                // Plain old loop
                 checkIfComplete = function(){
-					if (++loaded === length){
-						callback.call(targetWindow);
-					}
-				};
-				
-				// Doesn't call callback until all scripts have loaded.
-				for (var i = 0; i < length; ++i){
-					single(srcs[i], checkIfComplete, targetWindow);
-				}
-			}			
-		}
+                    if (++loaded === length){
+                        callback.call(targetWindow);
+                    }
+                };
+                
+                // Doesn't call callback until all scripts have loaded.
+                for (var i = 0; i < length; ++i){
+                    single(srcs[i], checkIfComplete, targetWindow);
+                }
+            }            
+        }
 
-		// **
+        // **
 
-		var method = (typeof src === 'string') ? single : multiple;
+        var method = (typeof src === 'string') ? single : multiple;
         return method.apply(this, arguments);
     }
     /*
@@ -168,9 +168,9 @@ this.sandie = (function(){
                             }
                         }
                     }
-                    self.remove();
                     callback(ret);
                 }
+                self.remove();
             };
 
             
