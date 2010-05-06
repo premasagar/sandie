@@ -14,11 +14,11 @@ h2. Avoid var collisions between competing scripts
 
 bc. var foo = 'bar';
 sandie(
-    'script.js',     // this example script contains "var foo = 'blah';"
-    'foo',           // the name of the var to capture from the sandboxed script
-    function(foo2){  // a callback function, for once the script has loaded
-        alert(foo);  // 'bar' (from global scope in the main document)
-        alert(foo2); // 'blah' (from the sandboxed script)
+    'script.js',                    // this example script contains "var foo = 'blah';"
+    'foo',                          // the name of the var to capture from the sandboxed script
+    function(foo2){                 // a callback function, for once the script has loaded
+        alert(foo);                 // 'bar' (from global scope in the main document)
+        alert(foo2);                // 'blah' (from the sandboxed script)
     }
 );
 
@@ -27,9 +27,9 @@ h2. Load one script, and return one variable:
 
 bc. sandie(
     'http://example.com/script.js', // script src
-    'foo', // the sandboxed var 'foo' to pass to the callback
+    'foo',                          // the sandboxed var 'foo' to pass to the callback
     function(myVar){
-        alert(myVar); // myVar === foo from the sandboxed script
+        alert(myVar);               // myVar === foo from the sandboxed script
     }
 );
 
@@ -37,9 +37,9 @@ bc. sandie(
 h2. Load multiple scripts, and return multiple variables:
 
 bc. sandie(
-    ['script1.js', 'script2.js'],
-    ['foo1', 'foo2'], // the sandboxed vars to pass to the callback
-    function(vars){   // 'vars' is a key-value object of 'foo1' & 'foo2'
+    ['script1.js', 'script2.js'],   // multiple script src's
+    ['foo1', 'foo2'],               // the sandboxed vars to pass to the callback
+    function(vars){                 // 'vars' is a key-value object of 'foo1' & 'foo2'
         alert(vars.foo1 + vars.foo2);
     }
 );
