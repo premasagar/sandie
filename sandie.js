@@ -2,7 +2,7 @@
 
 /*!
 * Sandie
-*   github.com/premasagar/mishmash/tree/master/sandie/
+*   github.com/premasagar/sandie
 *
 *//*
     Load and isolate JavaScript variables, by injecting scripts into a temporary iframe element.
@@ -35,10 +35,7 @@ window.sandie = (function(){
     /*
     *   getScript
     */
-    function getScript(src, callback, targetWindow, inOrder){
-        targetWindow = targetWindow || window;
-        callback = callback || function(){};
-    
+    function getScript(srcs, callback, targetWindow){    
         /**
          * Load a script into a <script> element
          * @param {String} src The source url for the script to load
@@ -74,50 +71,35 @@ window.sandie = (function(){
          * Note, there is only one callback function here, called after each is loaded
          *
          * @param {Array} srcs array of source files to load
-         * @param {Function} callback 
-         * @param {Boolean} inOrder - if true, load scripts in given order
+         * @param {Function} callback
          */
 
-        function multiple(srcs, callback, inOrder, targetWindow){
+        function multiple(srcs, callback, targetWindow){
             var
                 length = srcs.length,
                 loaded = 0,
-                checkIfComplete;
-
-            callback = callback || function(){};
+                checkIfComplete, i;
             
-            if (inOrder === true) {
-                // Recursive, each callback re-calls getScripts
-                // with a shifted array.
-                single(srcs.shift(), function(){
-                    if (length === 1){
-                        callback.call(targetWindow);
-                    }
-                    else {
-                        // preserve inOrder when recursing
-                        multiple(srcs, callback, true);
-                    }
-                }, targetWindow);
-            }
-            else {
-                // Plain old loop
-                checkIfComplete = function(){
-                    if (++loaded === length){
-                        callback.call(targetWindow);
-                    }
-                };
-                
-                // Doesn't call callback until all scripts have loaded.
-                for (var i = 0; i < length; ++i){
-                    single(srcs[i], checkIfComplete, targetWindow);
+            // Check if all scripts have loaded
+            checkIfComplete = function(){
+                if (++loaded === length){
+                    callback.call(targetWindow);
                 }
-            }            
+            };
+            
+            // Doesn't call callback until after all scripts have loaded
+            for (i = 0; i < length; ++i){
+                single(srcs[i], checkIfComplete, targetWindow);
+            }
         }
 
         // **
 
-        var method = (typeof src === 'string') ? single : multiple;
-        return method.apply(this, arguments);
+        var method = (typeof srcs === 'string') ? single : multiple;
+        targetWindow = targetWindow || window;
+        callback = callback || function(){};
+        
+        return method.call(this, srcs, callback, targetWindow);
     }
     /*
     * end getScript
@@ -131,6 +113,12 @@ window.sandie = (function(){
     }
     
     Sandie.prototype = {
+        settings: {
+            blankDocText:
+                '<!doctype html>' + '\n' +
+                '<html><head></head><body></body></html>'
+        },
+    
         init: function(script, props, callback){
             var
                 self = this,
@@ -148,7 +136,7 @@ window.sandie = (function(){
             
             iframe.style.display = 'none';
             body.appendChild(iframe);
-            this.clean();
+            this.write(); // create blank HTML document
 
             outerCallback = function(){
                 var
@@ -172,11 +160,11 @@ window.sandie = (function(){
                 }
                 self.remove();
             };
-
             
             if (isArray(script)){
                 getScript(script, outerCallback, this.window());
             }
+            return this;
         },
     
         window: function(){
@@ -187,19 +175,19 @@ window.sandie = (function(){
             return this.window().document;
         },
 
-        clean: function(){
+        write: function(docText){
             var doc = this.document();
+            docText = typeof docText === 'string' ? docText : this.settings.blankDocText;
+            
             doc.open();
-            doc.write(
-                '<!doctype html>' + '\n' +
-                '<html><head></head><body></body></html>'
-            );
+            doc.write(docText);
             doc.close();
             return this;
         },
 
         remove: function(){
             hostBody().removeChild(this.iframe);
+            return this;
         }
     };
 
