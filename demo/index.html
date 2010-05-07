@@ -20,11 +20,18 @@
 
 <body>
     <h1><a href="http://github.com/premasagar/sandie">Sandie</a></h1>
+    
     <p>This demo shows that multiple versions of a script (in this case, different versions of jQuery) may be loaded side-by-side, without affecting each others' scope or namespace.</p>
     <p>Sandie does this by creating a temporary iframe document for the scripts to be sandboxed.</p>
     <p>View the source of this page to see what's going on.</p>
+    
     <hr>
+
     <div id=demo></div>
+
+    <hr>
+    
+    <p>by <a href="http://twitter.com/premasagar">@premasagar</a></p>
     
     <script>
         var
@@ -72,9 +79,6 @@
                 callback();
             }
         );
-        
-        
-        
     </script>
 </body>
 </html>
