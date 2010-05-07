@@ -74,6 +74,7 @@ window.sandie = (function(){
          * @param {Function} callback
          */
 
+        /*
         function multiple(srcs, callback, targetWindow){
             var
                 length = srcs.length,
@@ -92,6 +93,7 @@ window.sandie = (function(){
                 single(srcs[i], checkIfComplete, targetWindow);
             }
         }
+        */
 
         // **
 
@@ -119,40 +121,50 @@ window.sandie = (function(){
                 '<html><head></head><body></body></html>'
         },
     
-        init: function(script, props, callback){
+        init: function(scripts, request, callback){
             var
                 self = this,
                 iframe = this.iframe = document.createElement('iframe'),
                 body = hostBody(),
-                outerCallback;
+                targetWindow = this.window(),
+                loaded = 0,
+                length, finish, checkIfComplete;
 
             if (!body){
                 return false;
             }
-
-            if (typeof script === 'string'){
-                script = [script];
+            
+            if (!isArray(scripts)){
+                scripts = [scripts];
             }
+            length = scripts.length;
             
             iframe.style.display = 'none';
             body.appendChild(iframe);
             this.write(); // create blank HTML document
+                
+            // Check if all scripts have loaded
+            checkIfComplete = function(){
+                if (++loaded === length){
+                    finish();
+                }
+            };
 
-            outerCallback = function(){
+            finish = function(){
                 var
                     window = self.window(),
                     ret = {},
                     i, len;
                 
                 if (callback){
-                    if (props){
-                        if (typeof props === 'string'){
-                            ret = window[props];
+                    if (request){
+                        if (typeof request === 'string'){
+                            ret = window[request];
                         }
-                        if (isArray(props)){
-                            len = props.length;
+                        if (isArray(request)){
+                            len = request.length;
                             for (i=0; i<len; i++){
-                                ret[props[i]] = window[props[i]];
+                                ret[request[i]] = window[request[i]];
                             }
                         }
                     }
@@ -160,10 +172,25 @@ window.sandie = (function(){
                 }
                 self.remove();
             };
-            
-            if (isArray(script)){
-                getScript(script, outerCallback, this.window());
+                
+            // Doesn't call callback until after all scripts have loaded
+            for (i = 0; i < length; ++i){
+                script = scripts[i];
+                if (typeof script === 'string'){
+                    getScript(script, checkIfComplete, targetWindow);
+                }
+                else if (typeof script === 'function'){
+                    script.call(self.window());
+                }
+                else if (typeof script === 'object'){
+                    for (fnKey in script){
+                        if (script.hasOwnProperty(fnKey)){
+                            self.window()[fnKey] = script[fnKey];
+                        }
+                    }
+                }
             }
+            checkIfComplete();
             return this;
         },
     
