@@ -74,7 +74,7 @@ window.sandie = (function(){
          * @param {Function} callback
          */
 
-        /*
+        // TODO: Allow arrays within arrays to be passed - at the moment, multiple is not in use
         function multiple(srcs, callback, targetWindow){
             var
                 length = srcs.length,
@@ -93,7 +93,6 @@ window.sandie = (function(){
                 single(srcs[i], checkIfComplete, targetWindow);
             }
         }
-        */
 
         // **
 
@@ -121,17 +120,19 @@ window.sandie = (function(){
                 '<html><head></head><body></body></html>'
         },
     
-        init: function(scripts, request, callback){
+        init: function(scripts, request, callback, removeWhenDone){
             var
                 self = this,
                 iframe = this.iframe = document.createElement('iframe'),
                 body = hostBody(),
-                targetWindow = this.window(),
                 loaded = 0,
-                length, finish, checkIfComplete;
+                targetWindow, length, finish, checkIfComplete, fnKey, i, script;
 
             if (!body){
                 return false;
+            }
+            if (removeWhenDone !== false){
+                removeWhenDone = true;
             }
             
             if (!isArray(scripts)){
@@ -142,7 +143,8 @@ window.sandie = (function(){
             iframe.style.display = 'none';
             body.appendChild(iframe);
             this.write(); // create blank HTML document
-                
+            targetWindow = self.window();
+            
             // Check if all scripts have loaded
             checkIfComplete = function(){
                 if (++loaded === length){
@@ -152,25 +154,26 @@ window.sandie = (function(){
 
             finish = function(){
                 var
-                    window = self.window(),
                     ret = {},
                     i, len;
                 
                 if (callback){
                     if (request){
                         if (typeof request === 'string'){
-                            ret = window[request];
+                            ret = targetWindow[request];
                         }
                         if (isArray(request)){
                             len = request.length;
                             for (i=0; i<len; i++){
-                                ret[request[i]] = window[request[i]];
+                                ret[request[i]] = targetWindow[request[i]];
                             }
                         }
                     }
                     callback(ret);
                 }
-                self.remove();
+                if (removeWhenDone){
+                    self.remove();
+                }
             };
                 
             // Doesn't call callback until after all scripts have loaded
@@ -181,6 +184,7 @@ window.sandie = (function(){
                 }
                 else if (typeof script === 'function'){
                     script.call(self.window());
+                    checkIfComplete();
                 }
                 else if (typeof script === 'object'){
                     for (fnKey in script){
@@ -188,10 +192,9 @@ window.sandie = (function(){
                             self.window()[fnKey] = script[fnKey];
                         }
                     }
+                    checkIfComplete();
                 }
             }
-            checkIfComplete();
-            return this;
         },
     
         window: function(){
