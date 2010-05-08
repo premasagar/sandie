@@ -182,6 +182,7 @@ window.sandie = (function(){
                 if (typeof script === 'string'){
                     getScript(script, checkIfComplete, targetWindow);
                 }
+                // TODO: allow this to be executed after remote scripts via src urls are loaded
                 else if (typeof script === 'function'){
                     script.call(self.window());
                     checkIfComplete();

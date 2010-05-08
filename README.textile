@@ -9,6 +9,8 @@ Scripts are sandboxed by loading them inside the window of a temporary iframe, a
 
 h1. Usage
 
+See initial demo at "dharmafly.com/sandie/demo/":http://dharmafly.com/sandie/demo/
+
 
 h2. Avoid var collisions between competing scripts
 
@@ -43,6 +45,10 @@ bc. sandie(
         alert(vars.foo1 + vars.foo2);
     }
 );
+
+h2. Load objects and pass functions into sandbox, before and after external scripts
+
+bc. //partially implemented - check back soon
 
 
 h2. Example uses
