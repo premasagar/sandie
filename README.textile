@@ -46,9 +46,24 @@ bc. sandie(
     }
 );
 
-h2. Load objects and pass functions into sandbox, before and after external scripts
+h2. Load objects and pass functions into the sandbox
 
-bc. //partially implemented - check back soon
+bc. sandie(
+    [{foo1:bar}, function(){this.foo2 = 'blah';}, 'foo3.js'],   // objects, functions and external scripts
+    ['foo1', 'foo2', foo3],          // the sandboxed vars to pass to the callback
+    function(vars){                 // 'vars' is a key-value object of 'foo1', 'foo2' & 'foo3'
+        alert(vars.foo1 + vars.foo2 + vars.foo3);
+    }
+);
+
+In this example, an object is merged into the global scope of the sandbox (i.e. the iframe @window@), a function is executed in the scope of the sandbox, and then an external script is loaded.
+
+This is useful, for example, when certain variables and functions are required to be in place before loading an external script.
+
+h2. To Do
+
+* Allow objects and functions to be included _after_ external scripts have been loaded.
+* Allow external scripts to load in order, in case one is dependent on another
 
 
 h2. Example uses
