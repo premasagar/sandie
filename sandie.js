@@ -23,7 +23,7 @@ var sandie = (function(){
         document = window.document;
 
     function isArray(obj){
-        return toString.call(obj) === "[object Array]" || obj.constructor === Array || obj instanceof Array;
+        return Object.prototype.toString.call(obj) === "[object Array]" || obj.constructor === Array || obj instanceof Array;
     }
 
     function hostBody(){
@@ -37,6 +37,7 @@ var sandie = (function(){
             prop;
 
         for (prop in obj){
+            // deliberately not using hasOwnProperty, as this is not implemented against the window object in some older browsers
             lookup[prop] = true;
         }
         return lookup;
