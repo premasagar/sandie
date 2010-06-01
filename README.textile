@@ -16,33 +16,20 @@ h2. Avoid var collisions between competing scripts
 
 bc. var foo = 'bar';
 sandie(
-    'script.js',     // this example script contains "var foo = 'blah';"
-    'foo',           // the name of the var to capture from the sandboxed script
-    function(foo2){  // a callback function, for once the script has loaded
-        alert(foo);  // 'bar' (from global scope in the main document)
-        alert(foo2); // 'blah' (from the sandboxed script)
+    'script.js',            // this example script contains "var foo = 'blah';"
+    function(exports){      // a callback function, containing vars added by the script
+        alert(foo);         // 'bar' (from global scope in the main document)
+        alert(exports.foo); // 'blah' (from the sandboxed script)
     }
 );
 
 
-h2. Load one script, and return one variable:
+h2. Load multiple scripts
 
 bc. sandie(
-    'http://example.com/script.js', // script src
-    'foo',                          // the sandboxed var 'foo' to pass to the callback
-    function(myVar){                // myVar === foo from the sandboxed script
-        alert(myVar);
-    }
-);
-
-
-h2. Load multiple scripts, and return multiple variables:
-
-bc. sandie(
-    ['script1.js', 'script2.js'],   // multiple script src's
-    ['foo1', 'foo2'],               // the sandboxed vars to pass to the callback
-    function(vars){                 // 'vars' is a key-value object of 'foo1' & 'foo2'
-        alert(vars.foo1 + vars.foo2);
+    ['script1.js', 'script2.js'], // multiple script src's
+    function(exports){            // 'exports' is an object, with properties 'foo1' & 'foo2' from the scripts
+        alert(exports.foo1 + exports.foo2);
     }
 );
 
@@ -50,9 +37,8 @@ h2. Load objects and pass functions into the sandbox
 
 bc. sandie(
     [{foo1:bar}, function(){this.foo2 = 'blah';}, 'foo3.js'],   // objects, functions and external scripts
-    ['foo1', 'foo2', foo3],          // the sandboxed vars to pass to the callback
-    function(vars){                 // 'vars' is a key-value object of 'foo1', 'foo2' & 'foo3'
-        alert(vars.foo1 + vars.foo2 + vars.foo3);
+    function(exports){                 // 'exports' is a key-value object of 'foo1', 'foo2' & 'foo3'
+        alert(exports.foo1 + exports.foo2 + exports.foo3);
     }
 );
 
@@ -62,7 +48,6 @@ This is useful, for example, when certain variables and functions are required t
 
 h2. To Do
 
-* Allow objects and functions to be included _after_ external scripts have been loaded.
 * Allow external scripts to load in order, in case one is dependent on another
 
 

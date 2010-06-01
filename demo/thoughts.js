@@ -19,26 +19,3 @@ s
 sandie('foo.js', callback, {autoclose:true});
 
 */
-
-//
-
-function ownProperties(obj1, obj2){
-    var
-        exports = {},
-        prop;
-
-    for (prop in obj1){
-        if (
-            obj1.hasOwnProperty(prop) &&
-            (!obj2 || obj2 && !obj2.hasOwnProperty(prop))
-        ){
-            try{
-                exports[prop] = obj1[prop];
-            }
-            catch(e){}
-        }
-    }
-    return exports;
-}
-
-var exports = ownProperties(sandieAfter, cachedSandieBefore);

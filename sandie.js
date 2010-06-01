@@ -13,11 +13,11 @@
     license
         opensource.org/licenses/mit-license.php
         
-    v0.1
+    v0.2
 
-*/
+*//*jslint browser: true, devel: true, onevar: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, strict: true, newcap: true, immed: true */
 
-window.sandie = (function(){
+var sandie = (function(){
     var
         window = this,
         document = window.document;
@@ -28,6 +28,32 @@ window.sandie = (function(){
 
     function hostBody(){
         return document.getElementsByTagName('body')[0];
+    }
+    
+    // Get an lookup hash of own properties from an object
+    function ownProps(obj){
+        var
+            lookup = {},
+            prop;
+
+        for (prop in obj){
+            lookup[prop] = true;
+        }
+        return lookup;
+    }
+
+    // Get a hash of key-value pairs from obj1 that are not in obj2
+    function propDiff(obj, lookup){
+        var
+            exports = {},
+            prop;
+
+        for (prop in obj){
+            if (!lookup[prop]){
+                exports[prop] = obj[prop];
+            }
+        }
+        return exports;
     }
 
     // **
@@ -89,7 +115,7 @@ window.sandie = (function(){
             };
             
             // Doesn't call callback until after all scripts have loaded
-            for (i = 0; i < length; ++i){
+            for (i = 0; i < length; i++){
                 single(srcs[i], checkIfComplete, targetWindow);
             }
         }
@@ -120,19 +146,16 @@ window.sandie = (function(){
                 '<html><head></head><body></body></html>'
         },
     
-        init: function(scripts, request, callback, removeWhenDone){
+        init: function(scripts, callback){ // if callback returns false, then don't remove when complete
             var
                 self = this,
                 iframe = this.iframe = document.createElement('iframe'),
                 body = hostBody(),
                 loaded = 0,
-                targetWindow, length, finish, checkIfComplete, fnKey, i, script;
+                targetWindow, length, checkIfComplete, fnKey, i, script, cacheProps;
 
             if (!body){
                 return false;
-            }
-            if (removeWhenDone !== false){
-                removeWhenDone = true;
             }
             
             if (!isArray(scripts)){
@@ -142,49 +165,30 @@ window.sandie = (function(){
             
             iframe.style.display = 'none';
             body.appendChild(iframe);
-            this.write(); // create blank HTML document
+            self.write(); // create blank HTML document
             targetWindow = self.window();
+            cacheProps = ownProps(targetWindow);
             
             // Check if all scripts have loaded
             checkIfComplete = function(){
-                if (++loaded === length){
-                    finish();
-                }
-            };
-
-            finish = function(){
-                var
-                    ret = {},
-                    i, len;
+                var newVars;
                 
-                if (callback){
-                    if (request){
-                        if (typeof request === 'string'){
-                            ret = targetWindow[request];
-                        }
-                        if (isArray(request)){
-                            len = request.length;
-                            for (i=0; i<len; i++){
-                                ret[request[i]] = targetWindow[request[i]];
-                            }
-                        }
+                if (++loaded === length){                
+                    newVars = propDiff(targetWindow, cacheProps);
+                    if (callback.call(self, newVars) !== false){
+                        self.remove();
                     }
-                    callback(ret);
-                }
-                if (removeWhenDone){
-                    self.remove();
                 }
             };
                 
             // Doesn't call callback until after all scripts have loaded
-            for (i = 0; i < length; ++i){
+            for (i = 0; i < length; i++){
                 script = scripts[i];
                 if (typeof script === 'string'){
                     getScript(script, checkIfComplete, targetWindow);
                 }
-                // TODO: allow this to be executed after remote scripts via src urls are loaded
                 else if (typeof script === 'function'){
-                    script.call(this    );
+                    script.call(self);
                     checkIfComplete();
                 }
                 else if (typeof script === 'object'){
