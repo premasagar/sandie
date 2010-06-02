@@ -91,6 +91,7 @@ function getScript(srcs, callback, options){
     var
         method = (typeof srcs === 'string') ? single : multiple;
     
+    options = options || {};
     if (!options.charset){
         options.charset = 'utf-8';
     }
