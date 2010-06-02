@@ -1,4 +1,4 @@
-"Sandie":http://github.com/premasagar/sandie is a simple method for loading external JavaScript files into a page without affecting the global scope of the document. This is useful when there is a need to avoid collisions between conflicting scripts and to keep the global namespace clean - e.g. when including third-party JavaScript widgets in a web page (see the "Sqwidget project":http://github.com/premasagar/sqwidget).
+"Sandie":http://github.com/premasagar/sandie is a simple method for creating a new JavaScript _context_ in the browser, e.g. for loading external scripts into a page without affecting the global scope of the document. This is useful when there is a need to avoid collisions between otherwise conflicting scripts and to keep the global namespace clean - e.g. when including third-party JavaScript widgets in a web page (see the "Sqwidget project":http://github.com/premasagar/sqwidget).
 
 Scripts are sandboxed by loading them inside the window of a temporary iframe, and then returned to a callback function, so that they can be used elsewhere on the main document.
 
