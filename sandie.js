@@ -15,7 +15,7 @@
         
     v0.2
 
-*//*jslint browser: true, devel: true, onevar: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, strict: true, newcap: true, immed: true */
+*/
 
 var sandie = (function(){
     var
@@ -62,20 +62,24 @@ var sandie = (function(){
     /*
     *   getScript
     */
-    function getScript(srcs, callback, targetWindow){    
+    function getScript(srcs, callback, options){    
         /**
          * Load a script into a <script> element
          * @param {String} src The source url for the script to load
          * @param {Function} callback Called when the script has loaded
          */
-        function single(src, callback){
+        function single(src, callback, options){
             var
+                charset = options.charset,
+                targetWindow = options.targetWindow,
                 document = targetWindow.document,
                 head = document.getElementsByTagName('head')[0],
                 script = document.createElement('script'),
                 loaded;
                 
             script.src = src;
+            script.type = 'text/javascript'; // Needed for some gitchy browsers, outside of HTML5
+            script.charset = charset;
             script.onload = script.onreadystatechange = function(){
                 var state = this.readyState;
                 if (!loaded && (!state || state === 'complete' || state === 'loaded')){
@@ -102,7 +106,7 @@ var sandie = (function(){
          */
 
         // TODO: Allow arrays within arrays to be passed - at the moment, multiple is not in use
-        function multiple(srcs, callback, targetWindow){
+        function multiple(srcs, callback, options){
             var
                 length = srcs.length,
                 loaded = 0,
@@ -117,17 +121,24 @@ var sandie = (function(){
             
             // Doesn't call callback until after all scripts have loaded
             for (i = 0; i < length; i++){
-                single(srcs[i], checkIfComplete, targetWindow);
+                single(srcs[i], checkIfComplete, options);
             }
         }
 
         // **
 
-        var method = (typeof srcs === 'string') ? single : multiple;
-        targetWindow = targetWindow || window;
-        callback = callback || function(){};
+        var
+            method = (typeof srcs === 'string') ? single : multiple;
         
-        return method.call(this, srcs, callback, targetWindow);
+        if (!options.charset){
+            options.charset = 'utf-8';
+        }
+        if (!options.targetWindow){
+            options.targetWindow = window;
+        }
+        
+        callback = callback || function(){};        
+        return method.call(this, srcs, callback, options);
     }
     /*
     * end getScript
@@ -186,7 +197,7 @@ var sandie = (function(){
             for (i = 0; i < length; i++){
                 script = scripts[i];
                 if (typeof script === 'string'){
-                    getScript(script, checkIfComplete, targetWindow);
+                    getScript(script, checkIfComplete, {targetWindow: targetWindow});
                 }
                 else if (typeof script === 'function'){
                     script.call(self);
@@ -231,3 +242,5 @@ var sandie = (function(){
         return new Sandie(script, props, callback);
     };
 }());
+
+/*jslint browser: true, devel: true, onevar: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, strict: true, newcap: true, immed: true */
