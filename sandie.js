@@ -33,13 +33,13 @@ function getScript(srcs, callback, options){
     function single(src, callback, options){
         var
             charset = options.charset,
-            targetWindow = options.targetWindow,
-            document = targetWindow.document,
+            keep = options.keep,
+            target = options.target,
+            document = target.document,
             head = document.getElementsByTagName('head')[0],
             script = document.createElement('script'),
             loaded;
-            
-        script.src = src;
+        
         script.type = 'text/javascript'; // Needed for some gitchy browsers, outside of HTML5
         script.charset = charset;
         script.onload = script.onreadystatechange = function(){
@@ -47,12 +47,23 @@ function getScript(srcs, callback, options){
             if (!loaded && (!state || state === 'complete' || state === 'loaded')){
                 // Handle memory leak in IE
                 script.onload = script.onreadystatechange = null;
-                // head.removeChild(script); // Worth removing script element once loaded?
+                
+                // Remove script element once loaded
+                if (!keep){
+                    head.removeChild(script); 
+                }
                 
                 loaded = true;
-                callback.call(targetWindow);
+                callback.call(target);
             }
         };
+        // Async loading (extra hinting for compliant browsers)
+        script.async = true;
+        
+        // Apply the src
+        script.src = src;
+        
+        // And go...
         head.appendChild(script);
     }
 
@@ -76,7 +87,7 @@ function getScript(srcs, callback, options){
         // Check if all scripts have loaded
         checkIfComplete = function(){
             if (++loaded === length){
-                callback.call(options.targetWindow);
+                callback.call(options.target);
             }
         };
         
@@ -95,8 +106,8 @@ function getScript(srcs, callback, options){
     if (!options.charset){
         options.charset = 'utf-8';
     }
-    if (!options.targetWindow){
-        options.targetWindow = window;
+    if (!options.target){
+        options.target = window;
     }
     
     callback = callback || function(){};        
@@ -157,38 +168,54 @@ function getScript(srcs, callback, options){
                 '<!doctype html>' + '\n' +
                 '<html><head></head><body></body></html>'
         },
+        
+        // whether iframe should auto-remove after first run
+        persist: false,
     
-        init: function(scripts, callback){ // if callback returns false, then don't remove when complete
+        init: function(scripts, callback, persist){
             var
                 self = this,
                 iframe = this.iframe = document.createElement('iframe'),
-                body = hostBody(),
-                loaded = 0,
-                targetWindow, length, checkIfComplete, fnKey, i, script, cacheProps;
+                body = hostBody();
 
             if (!body){
-                return false;
+                throw "Sandie: no host DOM";
             }
+            if (persist === true){
+                this.persist = persist;
+            }
+            iframe.style.display = 'none';
+            body.appendChild(iframe);
+            self.write(); // create blank HTML document
+            target = self.window();
             
+            self.load(scripts, callback, target);
+        },
+        
+        load: function(scripts, callback){
+            var self = this,
+                target = self.window(),
+                cacheProps = ownProps(target),
+                loaded = 0,
+                length, checkIfComplete, fnKey, i, script;
+            
+            if (!target){
+                throw "Sandie: already closed";
+            }
             if (!isArray(scripts)){
                 scripts = [scripts];
             }
             length = scripts.length;
-            
-            iframe.style.display = 'none';
-            body.appendChild(iframe);
-            self.write(); // create blank HTML document
-            targetWindow = self.window();
-            cacheProps = ownProps(targetWindow);
-            
+
             // Check if all scripts have loaded
             checkIfComplete = function(){
                 var newVars;
                 
                 if (++loaded === length){                
-                    newVars = propDiff(targetWindow, cacheProps);
-                    if (callback.call(self, newVars) !== false){
-                        self.remove();
+                    newVars = propDiff(target, cacheProps);
+                    callback.call(self, newVars);
+                    if (!self.persist){
+                        self.close();
                     }
                 }
             };
@@ -197,7 +224,7 @@ function getScript(srcs, callback, options){
             for (i = 0; i < length; i++){
                 script = scripts[i];
                 if (typeof script === 'string'){
-                    getScript(script, checkIfComplete, {targetWindow: targetWindow});
+                    getScript(script, checkIfComplete, {target: target});
                 }
                 else if (typeof script === 'function'){
                     script.call(self);
@@ -206,7 +233,7 @@ function getScript(srcs, callback, options){
                 else if (typeof script === 'object'){
                     for (fnKey in script){
                         if (script.hasOwnProperty(fnKey)){
-                            self.window()[fnKey] = script[fnKey];
+                            target[fnKey] = script[fnKey];
                         }
                     }
                     checkIfComplete();
@@ -232,7 +259,7 @@ function getScript(srcs, callback, options){
             return this;
         },
 
-        remove: function(){
+        close: function(){
             hostBody().removeChild(this.iframe);
             return this;
         }
