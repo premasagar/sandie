@@ -179,33 +179,37 @@ function getScript(srcs, callback, options){
                 body = hostBody();
 
             if (!body){
-                throw "Sandie: no host DOM";
+                throw 'Sandie: no host DOM';
             }
-            if (persist === true){
-                this.persist = persist;
-            }
+            //iframe.src = 'about:blank';
             iframe.style.display = 'none';
             body.appendChild(iframe);
-            self.write(); // create blank HTML document
-            target = self.window();
             
-            self.load(scripts, callback, target);
+            self.write() // create blank HTML document
+                .load(scripts, callback, persist);
         },
         
-        load: function(scripts, callback){
+        load: function(scripts, callback, persist){
             var self = this,
                 target = self.window(),
                 cacheProps = ownProps(target),
                 loaded = 0,
                 length, checkIfComplete, fnKey, i, script;
             
+            if (!scripts){
+                return self;
+            }
             if (!target){
-                throw "Sandie: already closed";
+                throw 'Sandie: already closed';
+            }
+            if (typeof persist === 'boolean'){
+                self.persist = persist;
             }
             if (!isArray(scripts)){
                 scripts = [scripts];
             }
             length = scripts.length;
+            callback = callback || function(){};
 
             // Check if all scripts have loaded
             checkIfComplete = function(){
@@ -227,7 +231,7 @@ function getScript(srcs, callback, options){
                     getScript(script, checkIfComplete, {target: target});
                 }
                 else if (typeof script === 'function'){
-                    script.call(self);
+                    script.call(target);
                     checkIfComplete();
                 }
                 else if (typeof script === 'object'){
@@ -250,18 +254,23 @@ function getScript(srcs, callback, options){
         },
 
         write: function(docText){
-            var doc = this.document();
-            docText = typeof docText === 'string' ? docText : this.settings.blankDocText;
+            var self = this,
+                doc = self.document();
+            
+            docText = typeof docText === 'string' ?
+                docText :
+                this.settings.blankDocText;
             
             doc.open();
             doc.write(docText);
             doc.close();
-            return this;
+            return self;
         },
 
         close: function(){
-            hostBody().removeChild(this.iframe);
-            return this;
+            var self = this;
+            hostBody().removeChild(self.iframe);
+            return self;
         }
     };
 
