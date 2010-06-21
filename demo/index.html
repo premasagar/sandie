@@ -31,51 +31,58 @@
     <p>by <a href="http://twitter.com/premasagar">@premasagar</a></p>
     
     <script>
-        var
-            oldJQuery, reallyOldJQuery;
+        var sandboxedVars = [];
             
-        function callback(){
-            if (oldJQuery && reallyOldJQuery){        
-                // update demo page report
-                $('#demo').html(
-                    '<h2>Demo results</h2>' +
+        function demoCallback(someVar){
+            sandboxedVars.push(someVar);
+            
+            if (sandboxedVars.length === 2){
+                jQuery('#demo').html(
+                    '<h2>Demo results<\/h2>' +
                     '<p>' +
-                        'Host page has jQuery ' +
+                        'The host page has jQuery ' +
                             jQuery.fn.jquery +
+                            
                         ', one sandbox has jQuery ' +
-                            oldJQuery.fn.jquery +
+                            sandboxedVars[0].fn.jquery +
+                            
                         ', and another sandbox has jQuery ' +
-                            reallyOldJQuery.fn.jquery +
-                        '.' +
-                    '</p>'
+                            sandboxedVars[1].fn.jquery + '.' +
+                    '<\/p>'
                 );
             }
         }
     
         sandie(
-            // url or array of urls for scripts to load in the sandie
-            'jquery.1.3.2.js', // this is an older version of jQuery than that in the host page
+            /* this script would normally conflict with the host page */
+            'jquery.1.3.2.js',
             
             function(exports){
-                oldJQuery = exports.jQuery;
-                callback();
+                demoCallback(exports.jQuery);
             }
         );
     
         sandie(
-            'jquery.1.2.2.js', // an even older version of jQuery
-            
+            'jquery.1.2.2.js',            
             function(exports){
-                reallyOldJQuery = exports.jQuery;
-                callback();
+                demoCallback(exports.jQuery);
             }
         );
         
         /*
         // Another example
         sandie(
-            [{blah:1}, 'jquery.1.2.2.js', function(){this.foo = 'bar';}],
-            function(rsp){_(rsp);}
+            [
+                {window:null, foo:'bar'},
+                function(){
+                    this.example = 6;
+                },
+                'some-script.js'
+            ],
+            
+            function(vars){
+                console.log(vars);
+            }
         );
         */
     </script>
