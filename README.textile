@@ -55,7 +55,7 @@ By default, the sandbox will clean up after itself once all the scripts have loa
 The callback function can now be used to manipulate the sandbox further, e.g. via the @load()@ method, which takes the same arguments as the initial constructor:
 
 bc. sandie(
-    'example.js'
+    'example.js',
     function(){
         this.load('example2.js', function(vars){
             doSomething(vars);
