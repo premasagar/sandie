@@ -33,6 +33,7 @@ bc. sandie(
     }
 );
 
+
 h2. Load objects and pass functions into the sandbox
 
 bc. sandie(
@@ -46,9 +47,27 @@ In this example, an object is merged into the global scope of the sandbox (i.e. 
 
 This is useful, for example, when certain variables and functions are required to be in place before loading an external script.
 
-h2. To Do
 
-* Allow external scripts to load in order, in case one is dependent on another
+h2. Optional third argument: @persist@
+
+By default, the sandbox will clean up after itself once all the scripts have loaded. To keep keep the sandbox open, so that further scripts can be loaded or further manipulations can be made, simply pass boolean @true@ as the third argument.
+
+The callback function can now be used to manipulate the sandbox further, e.g. via the @load()@ method, which takes the same arguments as the initial constructor:
+
+bc. sandie(
+    'example.js'
+    function(){
+        this.load('example2.js', function(vars){
+            doSomething(vars);
+        });
+    },
+    true
+);
+
+
+h2. Document additional methods
+
+For the moment, check out the source code of @sandie.js@ to see what's available.
 
 
 h2. Example uses
@@ -58,10 +77,18 @@ h2. Example uses
 * (In fact, these are exactly the use cases of "Sqwidget":http://github.com/premasagar/sqwidget, which Sandie was created for)
 
 
+h2. Security
+
+The initial use case for Sandie was to contain potentially messy third-party scripts. It's important to be aware that a malicious script, say, written with knowledge of Sandie, _would_ be able to access global variables.
+
+To prevent this, it would be possible to pass in a function to a Sandie instance _before_ loading a malicious script. Such a function could, for example, mask global variables like @window@ and @document@ by setting local variables with the same name to @null@. The consequences of this would be that innocent uses for these variables would be made impossible (e.g. measuring the window dimensions).
+
+An in-built method for bulletproofing a secure sandbox may be added to Sandie in future. Patches and pull requests are very welcome.
+
+
 h2. Project status
 
-Under active development, with extended functionality on its way.
-So far confirmed working in:
+The script is under active development, with extended functionality on its way. It is confirmed working in all browsers tested:
 
 * Chrome 5 on Ubuntu & Windows Vista
 * Chrome 6 on Ubuntu
