@@ -81,7 +81,7 @@ h2. Security
 
 The initial use case for Sandie was to contain potentially messy third-party scripts. It's important to be aware that a malicious script, say, written with knowledge of Sandie, _would_ be able to access global variables.
 
-To prevent this, it would be possible to pass in a function to a Sandie instance _before_ loading a malicious script. Such a function could, for example, mask global variables like @window@ and @document@ by setting local variables with the same name to @null@. The consequences of this would be that innocent uses for these variables would be made impossible (e.g. measuring the window dimensions).
+To prevent this, it would be possible to pass in a function to a Sandie instance _before_ loading a malicious script. Such a function could, for example, replace certain properties of the local @window@ object with @null@ values. The consequences of this might be that innocent uses for these properties would be made impossible. Different applications may want to lock down different properties.
 
 An in-built method for bulletproofing a secure sandbox will probably be added to Sandie in future. Patches and pull requests are very welcome.
 
