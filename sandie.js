@@ -169,12 +169,6 @@ function getScript(srcs, callback, options){
     }
     
     Sandie.prototype = {
-        settings: {
-            blankDocText:
-                '<!doctype html>' + '\n' +
-                '<html><head></head><body></body></html>'
-        },
-        
         // whether iframe should auto-remove after first run
         persist: false,
 
@@ -191,16 +185,8 @@ function getScript(srcs, callback, options){
             iframe.style.display = 'none';
             body.appendChild(iframe);
             
-            self.flush()
+            return self.flush()
                 .load(scripts, callback, persist);
-        },
-        
-        // Keep the iframe element intact, but refresh its window & document
-        flush: function(){
-            var self = this;
-            self.write(); // create blank HTML document
-            self._initProps = self.props();
-            return self;
         },
         
         // Determine the properties of the iframe window
@@ -250,7 +236,15 @@ function getScript(srcs, callback, options){
             for (i = 0; i < length; i++){
                 script = scripts[i];
                 if (typeof script === 'string'){
-                    getScript(script, checkIfComplete, {target: target});
+                    // eval: experimental; this will be made more sophisticated in future
+                    if (script.indexOf('<script>') === 0){
+                        self.write({head:script});
+                        checkIfComplete();
+                    }
+                    // load external scripts
+                    else {
+                        getScript(script, checkIfComplete, {target: target});
+                    }
                 }
                 else if (typeof script === 'function'){
                     script.call(target);
@@ -265,6 +259,7 @@ function getScript(srcs, callback, options){
                     checkIfComplete();
                 }
             }
+            return self;
         },
     
         // return the iframe's window
@@ -276,19 +271,44 @@ function getScript(srcs, callback, options){
         document: function(){
             return this.window().document;
         },
+        
+        // return the iframe's <head> element
+        head: function(){
+            return this.document().getElementsByTagName('head')[0];
+        },
+        
+        // return the iframe's <body> element
+        body: function(){
+            return this.document().body;
+        },
+        
+        html: function(options){
+            options = options || {};
+            return (options.doctype || '<!doctype html>') +
+                '<html>' +
+                    '<head>' + (options.head || '') + '</head>' +
+                    '<body>' + (options.body || '') + '</body>' +
+                '</html>';
+        },
 
-        // write out a new document via html + doctype
-        write: function(docText){
+        // write out a new document
+        // optional argument {doctype:'<!doctype html>', head:'<script>var foo = "bar";</script>', body:'<div></div>'}
+        // TODO: Add an optional argument for an onload callback, for when an external script is added to the head
+        write: function(htmlOptions){
             var self = this,
                 doc = self.document();
             
-            docText = typeof docText === 'string' ?
-                docText :
-                this.settings.blankDocText;
-            
             doc.open();
-            doc.write(docText);
+            doc.write(self.html(htmlOptions));
             doc.close();
+            return self;
+        },
+        
+        // Keep the iframe element intact, but refresh its window & document
+        flush: function(htmlOptions){
+            var self = this;
+            self.write(htmlOptions); // create blank HTML document
+            self._initProps = self.props();
             return self;
         },
 

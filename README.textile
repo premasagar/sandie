@@ -48,6 +48,27 @@ In this example, an object is merged into the global scope of the sandbox (i.e. 
 This is useful, for example, when certain variables and functions are required to be in place before loading an external script.
 
 
+h2. Eval code in the sandbox
+
+Pass a string of code, contained within a @<script></script>@ wrapper:
+
+bc. sandie('<script>var evilThing = "foo";</script>', callback);
+
+Scripts to be eval'ed can also be passed along with the other types of scripts (external scripts, objects and functions), but (for the moment, at least), the eval'ed script should come first:
+
+bc. sandie(['<script>var evilThing = "foo";</script>', {foo:'bar'}, 'example.js'], callback);
+
+This can be utilised, for example, to prevent a malicious script from accessing global properties, by masking the @window@ property:
+
+bc. sandie(['<script>var window = {};</script>', 'evil.js'], callback);
+
+Or by masking more fine-grained properties:
+
+bc. sandie(['<script>window.parent = null;</script>', 'evil.js'], callback);
+
+See the note on "Security", below.
+
+
 h2. Optional third argument: @persist@
 
 By default, the sandbox will clean up after itself once all the scripts have loaded. To keep keep the sandbox open, so that further scripts can be loaded or further manipulations can be made, simply pass boolean @true@ as the third argument.
@@ -79,11 +100,15 @@ h2. Example uses
 
 h2. Security
 
-The initial use case for Sandie was to contain potentially messy third-party scripts. It's important to be aware that a malicious script, say, written with knowledge of Sandie, _would_ be able to access global variables.
+The initial use case for Sandie was to contain potentially messy, but otherwise trusted, third-party scripts. However, it is also possible to contain malicious scripts. E.g. you can prevent a malicious script from accessing global properties, by masking the local @window@ variable:
 
-To prevent this, it would be possible to pass in a function to a Sandie instance _before_ loading a malicious script. Such a function could, for example, replace certain properties of the local @window@ object with @null@ values. The consequences of this might be that innocent uses for these properties would be made impossible. Different applications may want to lock down different properties.
+bc. sandie(['<script>var window = {};</script>', 'evil.js'], callback);
 
-An in-built method for bulletproofing a secure sandbox will probably be added to Sandie in future. Patches and pull requests are very welcome.
+In this example, the malicious script will be unable to access the global parent window or the local document. (Disclaimer: this has not yet been rigorously tested; please do share any research you perform in this area).
+
+Some third-party might legitimately want to access the containing window. Such scripts will break when the sandbox is locked down in this way.
+
+A more sophisticated API for bulletproofing a secure sandbox will be added to Sandie in future. (Your patches and pull requests are very welcome).
 
 
 h2. Project status
