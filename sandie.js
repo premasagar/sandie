@@ -19,6 +19,8 @@
 
 var sandie = (function(){
 
+// DEPENDENCIES
+
 /*
 * getScript
 *   github.com/premasagar/mishmash/tree/master/getscript/
@@ -99,7 +101,7 @@ function getScript(srcs, callback, options){
 
     // **
     
-    var
+    var window = this,
         method = (typeof srcs === 'string') ? single : multiple;
     
     options = options || {};
@@ -113,6 +115,8 @@ function getScript(srcs, callback, options){
     callback = callback || function(){};        
     return method.call(this, srcs, callback, options);
 }
+/* end getScript */
+// end DEPENDENCIES
 
 
     // **
@@ -121,10 +125,12 @@ function getScript(srcs, callback, options){
         window = this,
         document = window.document;
 
+    // Check if an object is an array
     function isArray(obj){
         return Object.prototype.toString.call(obj) === "[object Array]" || obj.constructor === Array || obj instanceof Array;
     }
 
+    // Get the body element of the host document
     function hostBody(){
         return document.getElementsByTagName('body')[0];
     }
@@ -143,17 +149,17 @@ function getScript(srcs, callback, options){
     }
 
     // Get a hash of key-value pairs from obj1 that are not in obj2
-    function propDiff(obj, lookup){
+    function varDiff(obj, lookup){
         var
-            exports = {},
+            vars = {},
             prop;
 
         for (prop in obj){
             if (!lookup[prop]){
-                exports[prop] = obj[prop];
+                vars[prop] = obj[prop];
             }
         }
-        return exports;
+        return vars;
     }
 
     // **
@@ -171,7 +177,8 @@ function getScript(srcs, callback, options){
         
         // whether iframe should auto-remove after first run
         persist: false,
-    
+
+        // initialise the sandbox
         init: function(scripts, callback, persist){
             var
                 self = this,
@@ -181,18 +188,36 @@ function getScript(srcs, callback, options){
             if (!body){
                 throw 'Sandie: no host DOM';
             }
-            //iframe.src = 'about:blank';
             iframe.style.display = 'none';
             body.appendChild(iframe);
             
-            self.write() // create blank HTML document
+            self.flush()
                 .load(scripts, callback, persist);
         },
         
+        // Keep the iframe element intact, but refresh its window & document
+        flush: function(){
+            var self = this;
+            self.write(); // create blank HTML document
+            self._initProps = self.props();
+            return self;
+        },
+        
+        // Determine the properties of the iframe window
+        props: function(){
+            return ownProps(this.window());
+        },
+        
+        // Determine which vars are new since the iframe was last created or flushed
+        vars: function(){
+            var self = this;
+            return varDiff(self.window(), self._initProps);
+        },
+        
+        // Load scripts, execute functions & attach objects to the sandboxed window; callback any new vars on completion
         load: function(scripts, callback, persist){
             var self = this,
                 target = self.window(),
-                cacheProps = ownProps(target),
                 loaded = 0,
                 length, checkIfComplete, fnKey, i, script;
             
@@ -213,11 +238,8 @@ function getScript(srcs, callback, options){
 
             // Check if all scripts have loaded
             checkIfComplete = function(){
-                var newVars;
-                
-                if (++loaded === length){                
-                    newVars = propDiff(target, cacheProps);
-                    callback.call(self, newVars);
+                if (++loaded === length){
+                    callback.call(self, self.vars());
                     if (!self.persist){
                         self.close();
                     }
@@ -245,14 +267,17 @@ function getScript(srcs, callback, options){
             }
         },
     
+        // return the iframe's window
         window: function(){
             return this.iframe.contentWindow;
         },
     
+        // return the iframe's document
         document: function(){
             return this.window().document;
         },
 
+        // write out a new document via html + doctype
         write: function(docText){
             var self = this,
                 doc = self.document();
@@ -267,6 +292,7 @@ function getScript(srcs, callback, options){
             return self;
         },
 
+        // remove the iframe element from the host page
         close: function(){
             var self = this;
             hostBody().removeChild(self.iframe);
@@ -274,6 +300,7 @@ function getScript(srcs, callback, options){
         }
     };
 
+    // wrapper function for creating a new sandbox
     return function(script, props, callback){
         return new Sandie(script, props, callback);
     };
