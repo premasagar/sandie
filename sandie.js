@@ -1,5 +1,3 @@
-'use strict';
-
 /*!
 * Sandie
 *   github.com/premasagar/sandie
@@ -17,7 +15,8 @@
 
 */
 
-var sandie = (function(){
+var sandie = (function(window){
+    'use strict';
 
 // DEPENDENCIES
 
@@ -121,9 +120,7 @@ function getScript(srcs, callback, options){
 
     // **
 
-    var
-        window = this,
-        document = window.document;
+    var document = window.document;
 
     // Check if an object is an array
     function isArray(obj){
@@ -324,6 +321,4 @@ function getScript(srcs, callback, options){
     return function(script, props, callback){
         return new Sandie(script, props, callback);
     };
-}());
-
-/*jslint browser: true, devel: true, onevar: true, undef: true, eqeqeq: true, bitwise: true, regexp: true, strict: true, newcap: true, immed: true */
+}(this));
